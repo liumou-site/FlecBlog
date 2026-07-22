@@ -9,6 +9,8 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+const publicServerInstructions = "Use article_list or article_search to locate articles before article_get. Create new content with article_create_draft. Use article_update_draft only for drafts and article_update_published only for published articles; omit fields that should be preserved. Call article_publish, article_unpublish, or article_delete only when the user explicitly intends that consequential action. Never guess article IDs."
+
 type publicServer struct {
 	articleService  *service.ArticleService
 	categoryService *service.CategoryService
@@ -40,7 +42,9 @@ func NewPublicHandler(
 	server := sdkmcp.NewServer(&sdkmcp.Implementation{
 		Name:    "flecblog-public",
 		Version: implVersion,
-	}, nil)
+	}, &sdkmcp.ServerOptions{
+		Instructions: publicServerInstructions,
+	})
 
 	s := &publicServer{
 		articleService:  articleService,
@@ -57,7 +61,8 @@ func NewPublicHandler(
 	// 注册 tools
 	s.registerTools(server)
 
-	return sdkmcp.NewStreamableHTTPHandler(func(*http.Request) *sdkmcp.Server {
+	streamableHandler := sdkmcp.NewStreamableHTTPHandler(func(*http.Request) *sdkmcp.Server {
 		return server
 	}, nil)
+	return streamableHandler
 }

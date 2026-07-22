@@ -338,25 +338,26 @@ func (r *ArticleRepository) Create(article *model.Article, tagIDs []uint) error 
 
 // Update 更新文章
 func (r *ArticleRepository) Update(article *model.Article, tagIDs []uint) error {
-	// 使用 Updates 而不是 Save，确保只更新不创建
-	if err := r.db.Model(&model.Article{}).Where("id = ?", article.ID).
-		Select("*").Omit("Category", "Tags", "id", "created_at").
-		Updates(article).Error; err != nil {
-		return err
-	}
-
-	// 更新标签关联
-	if tagIDs != nil {
-		var tags []model.Tag
-		if err := r.db.Where("id IN ?", tagIDs).Find(&tags).Error; err != nil {
-			return err
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		result := tx.Model(&model.Article{}).
+			Where("id = ?", article.ID).
+			Select("*").Omit("Category", "Tags", "id", "created_at").
+			Updates(article)
+		if result.Error != nil {
+			return result.Error
 		}
-		if err := r.db.Model(article).Association("Tags").Replace(tags); err != nil {
-			return err
-		}
-	}
 
-	return nil
+		if tagIDs != nil {
+			var tags []model.Tag
+			if err := tx.Where("id IN ?", tagIDs).Find(&tags).Error; err != nil {
+				return err
+			}
+			if err := tx.Model(article).Association("Tags").Replace(tags); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 // Delete 删除文章

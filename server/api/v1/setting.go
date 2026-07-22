@@ -48,8 +48,16 @@ func (c *SettingController) GetGroup(ctx *gin.Context) {
 		return
 	}
 
+	// 获取调用者角色
+	var callerRole string
+	if current, ok := ctx.Get("user"); ok {
+		if user, ok := current.(*model.User); ok {
+			callerRole = string(user.Role)
+		}
+	}
+
 	// 使用服务层方法获取所有配置项
-	settingsMap, err := c.settingService.GetByGroup(group)
+	settingsMap, err := c.settingService.GetGroupForCaller(group, callerRole)
 	if err != nil {
 		response.Failed(ctx, "获取配置失败: "+err.Error())
 		return

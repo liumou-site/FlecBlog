@@ -123,7 +123,7 @@ func InitRouter(db *database.Database, conf *config.Config) *gin.Engine {
 		articleService, categoryService, tagService, commentService, friendService, rssFeedService, momentService,
 		userService, statsService,
 	))
-	r.Any("/mcp", middleware.MCPAuth(conf), mcpHandler)
+	r.Any("/mcp", middleware.MCPAuth(settingService.MCPSecret), mcpHandler)
 
 	// Atom 订阅
 	r.GET("/atom.xml", atomController.GetAtomFeed)

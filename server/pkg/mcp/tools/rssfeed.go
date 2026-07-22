@@ -49,11 +49,11 @@ type RssFeedManagePayload struct {
 // RssFeedManageOutput rssfeed_manage 聚合 tool 输出
 type RssFeedManageOutput struct {
 	// list 结果
-	List        []RssFeedItem `json:"list,omitempty"`
-	Total       int64         `json:"total,omitempty"`
-	Page        int           `json:"page,omitempty"`
-	PageSize    int           `json:"page_size,omitempty"`
-	UnreadCount int64         `json:"unread_count,omitempty"`
+	List        *[]RssFeedItem `json:"list,omitempty"`
+	Total       *int64         `json:"total,omitempty"`
+	Page        int            `json:"page,omitempty"`
+	PageSize    int            `json:"page_size,omitempty"`
+	UnreadCount int64          `json:"unread_count,omitempty"`
 
 	// mark_read / mark_all_read 结果
 	Success  *bool  `json:"success,omitempty"`
@@ -105,9 +105,11 @@ func (w *RssFeedWrapper) listRssFeeds(payload RssFeedManagePayload) (*sdkmcp.Cal
 		list[i] = convertToRssFeedItem(item)
 	}
 
+	listField, totalField := ExplicitListFields(list, result.Total)
+
 	return nil, RssFeedManageOutput{
-		List:        list,
-		Total:       result.Total,
+		List:        listField,
+		Total:       totalField,
 		Page:        result.Page,
 		PageSize:    result.PageSize,
 		UnreadCount: result.UnreadCount,

@@ -730,14 +730,15 @@ func (s *UserService) Create(operator *model.User, req *dto.AdminCreateUserReque
 
 	// 创建用户
 	user := &model.User{
-		Email:     req.Email,
-		Password:  string(hashedPassword),
-		Nickname:  req.Nickname,
-		Avatar:    req.Avatar,
-		Badge:     req.Badge,
-		Website:   req.Website,
-		Role:      req.Role,
-		IsEnabled: true,
+		Email:       req.Email,
+		Password:    string(hashedPassword),
+		HasPassword: true,
+		Nickname:    req.Nickname,
+		Avatar:      req.Avatar,
+		Badge:       req.Badge,
+		Website:     req.Website,
+		Role:        req.Role,
+		IsEnabled:   true,
 	}
 
 	if err := s.repo.Create(user); err != nil {
@@ -828,6 +829,7 @@ func (s *UserService) Update(operator *model.User, id uint, req *dto.AdminUpdate
 			return err
 		}
 		user.Password = string(hashedPassword)
+		user.HasPassword = true
 		if err := s.repo.Update(user); err != nil {
 			return err
 		}
