@@ -20,13 +20,16 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// 内网IP白名单，用于本地服务间调用鉴权
+var internalCIDRs = []string{"127.0.0.1/32", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"}
+
 // InitRouter 初始化路由
 func InitRouter(db *database.Database, conf *config.Config) *gin.Engine {
 	// 设置为 release 模式
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	// 配置代理信任
-	_ = r.SetTrustedProxies([]string{"127.0.0.1/32", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"})
+	_ = r.SetTrustedProxies(internalCIDRs)
 
 	// 初始化仓库
 	articleRepo := repository.NewArticleRepository(db.DB)
@@ -234,8 +237,8 @@ func InitRouter(db *database.Database, conf *config.Config) *gin.Engine {
 		// ==================== 主题相关 ====================
 		themeGroup := frontendAPI.Group("/themes")
 		{
-			themeGroup.GET("", themeHandler.GetActive)       // 获取当前激活主题
-			themeGroup.POST("/_sync", themeHandler.SyncMeta) // 同步主题镜像元数据
+			themeGroup.GET("", themeHandler.GetActive)                                              // 获取当前激活主题
+			themeGroup.POST("/_sync", middleware.IPWhitelist(internalCIDRs), themeHandler.SyncMeta) // 同步主题镜像元数据
 		}
 
 		// ==================== 评论相关 ====================

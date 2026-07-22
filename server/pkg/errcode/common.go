@@ -6,6 +6,7 @@ var (
 	InvalidParams = NewError(10001, "入参错误")
 	NotFound      = NewError(10002, "资源不存在")
 	Unauthorized  = NewError(10003, "未授权访问")
+	Forbidden     = NewError(10004, "禁止访问")
 )
 
 // 用户/认证错误码 (20000-20999)
